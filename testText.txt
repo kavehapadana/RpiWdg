@@ -1,0 +1,93 @@
+        public void parseByte(byte Data)
+        {
+            if (MessageTCPStatus < MessageTCPStatusType.GOT_PAYLOAD)
+                Check_Sum += Data;
+
+            switch (MessageTCPStatus)
+            {
+                case MessageTCPStatusType.UNINIT:
+                    if (Data == Recieve_Sync1)
+                        MessageTCPStatus++;
+                    break;
+                case MessageTCPStatusType.GOT_SYNC1:
+                    if (Data != Recieve_Sync2)
+                        goto error;
+                    Check_Sum = 0;
+                    Message_Index = 0;
+                    MessageTCPStatus++;
+                    break;
+                case MessageTCPStatusType.GOT_SYNC2:
+                    msgRecv.ID = Data;
+                    MessageTCPStatus++;
+                    break;
+                case MessageTCPStatusType.GOT_ID:
+                    msgRecv.deviceType = Data;
+                    MessageTCPStatus++;
+                    break;
+                case MessageTCPStatusType.GOT_DeviceID:
+                    msgRecv.length = Data;
+                    msgRecv.data = new List<byte>();
+                    MessageTCPStatus++;
+                    break;
+                case MessageTCPStatusType.GOT_LEN:
+                    msgRecv.data.Add(Data);
+                    Message_Index++;
+                    if (Message_Index >= msgRecv.length)
+                    {
+                        MessageTCPStatus++;
+                    }
+                    break;
+                case MessageTCPStatusType.GOT_PAYLOAD:
+                    if (Data != Check_Sum)
+                    {
+                        goto error;
+                    }
+                    else
+                    {
+                        parseMessage(msgRecv);
+                        goto restart;
+                    }
+            }
+            return;
+        error:
+
+        restart: MessageTCPStatus = MessageTCPStatusType.UNINIT;
+            return;
+        }
+
+
+
+void MyObject::lookupServers()
+{
+    // Create a DNS lookup.
+    dns = new QDnsLookup(this);
+    connect(dns, SIGNAL(finished()),
+            this, SLOT(handleServers()));
+
+    // Find the XMPP servers for gmail.com
+    dns->setType(QDnsLookup::SRV);
+    dns->setName("_xmpp-client._tcp.gmail.com");
+    dns->lookup();
+}
+Once the request finishes you can handle the results with:
+
+void MyObject::handleServers()
+{
+    // Check the lookup succeeded.
+    if (dns->error() != QDnsLookup::NoError) {
+        qWarning("DNS lookup failed");
+        dns->deleteLater();
+        return;
+    }
+
+    // Handle the results.
+    const auto records = dns->serviceRecords();
+    for (const QDnsServiceRecord &record : records) {
+        ...
+    }
+    dns->deleteLater();
+}
+636310437000000000
+636310437000000000
+14146990789153800
+11754957977390417424
